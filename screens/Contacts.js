@@ -22,20 +22,20 @@ const Contacts = ({ navigation }) => {
     const context = useContext(AuthContext)
     const [userId, setUserId] = useState('')
     const [listUser, setListUser] = useState([])
-    const userList = [];
-    const [time, setTime] = useState(4);
+    const userList = []
+    const [time, setTime] = useState(4)
 
     useEffect(() => {
-      const interval = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
-      }, 100);
-  
-      setTimeout(() => {
-        clearInterval(interval);
-      }, 300);
-  
-      return () => clearInterval(interval);
-    }, []);
+        const interval = setInterval(() => {
+            setTime((prevTime) => prevTime - 1)
+        }, 100)
+
+        setTimeout(() => {
+            clearInterval(interval)
+        }, 300)
+
+        return () => clearInterval(interval)
+    }, [])
 
     useEffect(() => {
         AsyncStorage.getItem('userId')
@@ -79,8 +79,6 @@ const Contacts = ({ navigation }) => {
     //     const filteredUsers = listUser.filter((user) => user.uid !== userId);
     //     setFilteredUsers(filteredUsers);
     //   }, [listUser, userId]);
-
-  
 
     // const fetchUsers = async () => {
     //

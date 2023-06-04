@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useRef } from 'react'
 
 const PersonalChat = () => {
     const context = useContext(AuthContext)
@@ -50,56 +51,46 @@ const PersonalChat = () => {
             })
     }, [])
 
-    const getAllMessages = async () => {
-        console.log('friend', friend)
-        console.log('userId', userId)
+    const getAllMessages = async (userId) => {
         const chatid =
             friend > userId ? userId + '-' + friend : friend + '-' + userId
         const messagesRef = collection(database, 'Chats', chatid, 'messages')
         const messagesQuery = query(messagesRef, orderBy('createdAt', 'desc'))
 
-        // const check = onSnapshot(messagesQuery, (querySnapshot) => {
-        //     const messages111 = []
-        //     querySnapshot.forEach((doc) => {
-        //         messages.push(doc.data())
-        //     })
-        //     // Do something with the updated messages array
-        //     console.log('Do something with the updated messages array')
-        //     console.log(messages111)
-        // })
+        const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+            const allTheMsgs = querySnapshot.docs.map((docSnap) => {
+                if (docSnap.exists) {
+                    const createdAt = docSnap.data().createdAt.toDate()
 
-        const msgSnapshot = await getDocs(messagesQuery)
-        const allTheMsgs = msgSnapshot.docs.map((docSnap) => {
-            return {
-                ...docSnap.data(),
-                createdAt: docSnap.data().createdAt.toDate(),
+                    return {
+                        ...docSnap.data(),
+                        createdAt,
+                    }
+                }
+            })
+
+            if (isMounted.current) {
+                setMessages(allTheMsgs)
             }
         })
-        setMessages(allTheMsgs)
+
+        return unsubscribe
     }
 
+    const isMounted = useRef(false)
+
     useEffect(() => {
-        // const chatid =
-        //     friend > userId ? userId + '-' + friend : friend + '-' + userId
-        // const unsubscribe = onSnapshot(
-        //     query(
-        //         collection(database, 'Chats', chatid, 'messages'),
-        //         orderBy('timestamp', 'desc')
-        //     ),
-        //     (snapshot) =>
-        //         setMessages(
-        //             snapshot.docs.map((doc) => ({
-        //                 id: doc.id,
-        //                 data: doc.data(),
-        //             }))
-        //         )
+        isMounted.current = true
 
-        // )
-        // return unsubscribe;
-        getAllMessages()
-        console.log(123123)
+        AsyncStorage.getItem('userId').then((value) => {
+            const unsubscribe = getAllMessages(value)
+            return () => unsubscribe()
+        })
+
+        return () => {
+            isMounted.current = false
+        }
     }, [])
-
     // useEffect(()=>{
 
     // },[])
@@ -127,8 +118,6 @@ const PersonalChat = () => {
                 createdAt: serverTimestamp(),
             }
         )
-
-        console.log('Document written with ID: ', docRef.id)
     }
 
     // const renderSend = (props) => {
