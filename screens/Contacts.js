@@ -65,7 +65,6 @@ const Contacts = ({ navigation }) => {
                             uuid: user.uuid,
                         }))
                     setListUser(userList)
-                    console.log(8888888, listUser)
                 } else {
                     console.log('No data available')
                 }
@@ -74,15 +73,6 @@ const Contacts = ({ navigation }) => {
                 console.error(error)
             })
     }, [time])
-
-    // useEffect(() => {
-    //     const filteredUsers = listUser.filter((user) => user.uid !== userId);
-    //     setFilteredUsers(filteredUsers);
-    //   }, [listUser, userId]);
-
-    // const fetchUsers = async () => {
-    //
-    // }
 
     const [search, setSearch] = useState('')
     const [filteredUsers, setFilteredUsers] = useState()

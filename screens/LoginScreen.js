@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
 } from 'react-native'
 
-
 import CustomButton from '../components/CustomButton'
 import InputField from '../components/InputField'
 import { AuthContext, AuthProvider } from '../context/AuthContext'
@@ -15,10 +14,6 @@ import { AuthContext, AuthProvider } from '../context/AuthContext'
 const LoginScreen = ({ navigation }) => {
     const [userName, setUserName] = useState(null)
     const [passWord, setPassWord] = useState(null)
-
-    useEffect(() => {
-        console.log(passWord)
-    }, [passWord])
 
     const context = useContext(AuthContext)
     const userToken = context.userToken
@@ -28,14 +23,6 @@ const LoginScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={{ flex: 1, justifyContent: 'center' }}>
             <View style={{ paddingHorizontal: 25 }}>
-                <View style={{ alignItems: 'center' }}>
-                    {/* <LoginSVG
-            height={300}
-            width={300}
-            style={{transform: [{rotate: '-5deg'}]}}
-          /> */}
-                </View>
-
                 <Text
                     style={{
                         fontSize: 28,

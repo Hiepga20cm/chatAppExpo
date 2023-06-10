@@ -10,12 +10,12 @@ import PageTitle from '../components/PageTitle'
 import { Avatar } from 'react-native-elements'
 import { useRoute } from '@react-navigation/native'
 
-const ProfileAccount = ({ navigation }) => {
+const Profile = ({ navigation }) => {
     const route = useRoute()
-    const { username, userId, email } = route.params
-    const getFirst = (str) => {
-        return str[0]
-    }
+    // const { username, userId, email } = route.params
+    const username = 'username'
+    const userId = 1
+    const email = 'email'
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -39,13 +39,13 @@ const ProfileAccount = ({ navigation }) => {
                         <Avatar
                             size={'xlarge'}
                             rounded
-                            title={`${getFirst(username)}`}
+                            title={`H`}
                             containerStyle={{ backgroundColor: 'blue' }}
                         />
                     </View>
 
                     <View style={{ width: '100%', paddingHorizontal: 22 }}>
-                        {/* <Input
+                        <Input
                             id="firstName"
                             placeholder="First Name (Required) "
                         />
@@ -64,8 +64,8 @@ const ProfileAccount = ({ navigation }) => {
                             onPress={() =>
                                 navigation.navigate('BottomTabNavigation')
                             }
-                        /> */}
-                        <View
+                        />
+                        {/* <View
                             style={{
                                 display: 'flex',
                                 justifyContent: 'center',
@@ -73,7 +73,7 @@ const ProfileAccount = ({ navigation }) => {
                         >
                             <Text>Username : {username}</Text>
                             <Text>Email : {email}</Text>
-                        </View>
+                        </View> */}
                     </View>
                 </View>
             </PageContainer>
@@ -81,4 +81,4 @@ const ProfileAccount = ({ navigation }) => {
     )
 }
 
-export default ProfileAccount
+export default Profile

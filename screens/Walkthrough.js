@@ -6,7 +6,6 @@ import { images, COLORS, SIZES, FONTS } from '../constants'
 import Button from '../components/Button'
 
 export default function Walkthrough({ navigation }) {
-    console.log('`Walk');
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <PageContainer>

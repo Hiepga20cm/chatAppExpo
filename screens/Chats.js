@@ -6,36 +6,91 @@ import {
     TextInput,
     FlatList,
 } from 'react-native'
-import React, { useState,useContext } from 'react'
+import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PageContainer from '../components/PageContainer'
 import { MaterialCommunityIcons, AntDesign, Ionicons } from '@expo/vector-icons'
 import { FONTS, COLORS } from '../constants'
 import { contacts } from '../constants/data'
-import { useNavigation } from '@react-navigation/native'; 
-import { AuthContext, AuthProvider } from '../context/AuthContext'
-
-
-const Chats = () => {
-    const navigation = useNavigation();
-  
+import { getDatabase, ref, onValue, get } from 'firebase/database'
+import { useEffect } from 'react'
+import { Avatar } from 'react-native-elements'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { auth, collection, database } from '../firebase/firebaseConfig'
+import { doc, getDoc, getDocs } from 'firebase/firestore'
+const db = getDatabase()
+const Chats = ({ navigation }) => {
     const [search, setSearch] = useState('')
-    const [filteredUsers, setFilteredUsers] = useState(contacts)
+    const [allUsers, setAllUsers] = useState([])
+    const [filteredUsers, setFilteredUsers] = useState([])
 
-    const handleSearch = (text) => {
-        // setSearch(text)
-        // const filteredData = contacts.filter((user) =>
-        //     user.userName.toLowerCase().includes(text.toLowerCase())
-        // )
-        // setFilteredUsers(filteredData)
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const value = await AsyncStorage.getItem('userId')
+                if (value !== null) {
+                    const snapshot = await get(ref(db, 'users'))
+                    const users = snapshot.val()
+                    const usersArray = Object.values(users)
+                    const filteredUsersArray = usersArray.filter(
+                        (user) => user.uuid !== value
+                    )
+                    // const docRef = doc(
+                    //     database,
+                    //     'Chats',
+                    //     '029SuvkAyyYeA8xwVaLy9G9JSBv1-UECvse08C9T9368dm5gP12wsAQn1'
+                    // )
+                    // const check = await getDoc(docRef)
+                    // if (check.exists()) {
+                    //     console.log('co ton tai')
+                    // } else {
+                    //     console.log('khồng tồn tại')
+                    // }
+                    setAllUsers(filteredUsersArray)
+                    setFilteredUsers(filteredUsersArray)
+                } else {
+                    console.log('userID not found')
+                }
+            } catch (error) {
+                console.error('Error:', error)
+            }
+        }
+        fetchData()
+    }, [])
+    const componentDidMount = async () => {
+        try {
+            const db = getDatabase()
+            await get(ref(db, 'users')).then((snapshot) => {
+                const users = snapshot.val()
+            })
+        } catch (error) {
+            alert(error)
+        }
     }
 
+    const handleSearch = (text) => {
+        setSearch(text)
+        const filteredData = allUsers.filter((user) =>
+            user.username.toLowerCase().includes(text.toLowerCase())
+        )
+        setFilteredUsers(filteredData)
+    }
+    const getFirstKey = (str) => {
+        if (str) {
+            return str.split('')[0].toUpperCase()
+        }
+        return ''
+    }
     const renderItem = ({ item, index }) => (
         <TouchableOpacity
             key={index}
             onPress={() =>
                 navigation.navigate('PersonalChat', {
-                    userName: item.userName,
+                    username: item.username,
+                    userId: item.uuid,
+                    friend: item.uuid,
+                    email: item.email,
+                    publicKey: item.publicKey,
                 })
             }
             style={[
@@ -77,15 +132,29 @@ const Chats = () => {
                     ></View>
                 )}
 
-                <Image
-                    source={item.userImg}
-                    resizeMode="contain"
-                    style={{
-                        height: 50,
-                        width: 50,
-                        borderRadius: 25,
-                    }}
-                />
+                {item.profile_picture ? (
+                    <Image
+                        source={item.profile_picture}
+                        resizeMode="contain"
+                        style={{
+                            height: 50,
+                            width: 50,
+                            borderRadius: 25,
+                        }}
+                    />
+                ) : (
+                    <Image
+                        source={{
+                            uri: 'https://vnn-imgs-f.vgcloud.vn/2020/03/23/11/trend-avatar-1.jpg',
+                        }}
+                        resizeMode="contain"
+                        style={{
+                            height: 50,
+                            width: 50,
+                            borderRadius: 25,
+                        }}
+                    />
+                )}
             </View>
             <View
                 style={{
@@ -93,11 +162,11 @@ const Chats = () => {
                 }}
             >
                 <Text style={{ ...FONTS.h4, marginBottom: 4 }}>
-                    {item.userName}
+                    {item.username}
                 </Text>
-                <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
+                {/* <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
                     {item.lastSeen}
-                </Text>
+                </Text> */}
             </View>
         </TouchableOpacity>
     )
@@ -129,7 +198,7 @@ const Chats = () => {
                                 style={{
                                     marginLeft: 12,
                                 }}
-                                onPress={() => console.log('Add contacts')}
+                                onPress={() => componentDidMount()}
                             >
                                 <MaterialCommunityIcons
                                     name="playlist-check"
@@ -138,75 +207,6 @@ const Chats = () => {
                                 />
                             </TouchableOpacity>
                         </View>
-                    </View>
-
-                    <View
-                        style={{
-                            marginHorizontal: 22,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <View
-                            style={{
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                marginRight: 4,
-                            }}
-                        >
-                            <TouchableOpacity
-                                style={{
-                                    height: 50,
-                                    width: 50,
-                                    borderRadius: 25,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    backgroundColor: '#e6edff',
-                                    marginBottom: 4,
-                                }}
-                            >
-                                <AntDesign
-                                    name="plus"
-                                    size={24}
-                                    color={COLORS.black}
-                                />
-                            </TouchableOpacity>
-                        </View>
-
-                        <FlatList
-                            horizontal={true}
-                            data={contacts}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item, index }) => (
-                                <View
-                                    style={{
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    <TouchableOpacity
-                                        style={{
-                                            paddingVertical: 15,
-                                            marginRight: 22,
-                                        }}
-                                    >
-                                        <Image
-                                            source={item.userImg}
-                                            resizeMode="contain"
-                                            style={{
-                                                height: 50,
-                                                width: 50,
-                                                borderRadius: 25,
-                                            }}
-                                        />
-                                    </TouchableOpacity>
-                                    <Text>
-                                        {item.userName.substring(0, 5)}...
-                                    </Text>
-                                </View>
-                            )}
-                        />
                     </View>
                     <View
                         style={{
@@ -246,7 +246,7 @@ const Chats = () => {
                         <FlatList
                             data={filteredUsers}
                             renderItem={renderItem}
-                            keyExtractor={(item) => item.id.toString()}
+                            keyExtractor={(item) => item.uuid}
                         />
                     </View>
                 </View>

@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import { AuthContext } from '../context/AuthContext'
 import Verification from '../screens/Verification'
 import ProfileAccount from '../screens/ProfileAccount'
+import Profile from '../screens/Profile'
 import PersonalChat from '../screens/PersonalChat'
 import BottomTabNavigation from './BottomTabNavigation'
 import AuthStack from './AuthStack'
@@ -13,14 +14,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 const AppNav = () => {
     const Stack = createNativeStackNavigator()
     const context = useContext(AuthContext)
-
-    console.log(context)
     const login = context.login
     const userToken = context.userToken
-
-    
-    console.log(userToken)
-
 
     return (
         <SafeAreaProvider>
@@ -50,6 +45,7 @@ const AppNav = () => {
                             name="PersonalChat"
                             component={PersonalChat}
                         />
+                        <Stack.Screen name="Profile" component={Profile} />
                     </Stack.Navigator>
                 )}
             </NavigationContainer>

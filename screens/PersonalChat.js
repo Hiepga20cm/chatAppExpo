@@ -4,10 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLORS, SIZES, FONTS } from '../constants'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
-import { GiftedChat, Send, Bubble } from 'react-native-gifted-chat'
+import { GiftedChat, Send, Bubble, Avatar } from 'react-native-gifted-chat'
 import { useNavigation, useRoute } from '@react-navigation/native'
-import { auth, database } from '../firebaseConfig'
-
+import { auth, database } from '../firebase/firebaseConfig'
+import Loading from '../components/Loading'
 import { AuthContext, AuthProvider } from '../context/AuthContext'
 import {
     collection,
@@ -18,20 +18,54 @@ import {
     orderBy,
     onSnapshot,
 } from 'firebase/firestore'
-
+import CryptoJS from 'react-native-crypto-js'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRef } from 'react'
-
+import { p, g } from '@env'
 const PersonalChat = () => {
+    const [isLoading, setIsLoading] = useState(true)
     const context = useContext(AuthContext)
     const userUID = context.userId
     const [userId, setUserId] = useState(userUID)
-
     const navigation = useNavigation()
     const route = useRoute()
-    const { friend } = route.params
+    const { friend, username, email, publicKey } = route.params
+    const [key, setKey] = useState(null)
 
     const [messages, setMessages] = useState([])
+    useEffect(() => {
+        const powerMod = (base, exponent, modulus) => {
+            let result = 1
+            base = base % modulus
+
+            while (exponent > 0) {
+                if (exponent % 2 === 1) {
+                    result = (result * base) % modulus
+                }
+                exponent = Math.floor(exponent / 2)
+                base = (base * base) % modulus
+            }
+
+            return result
+        }
+        AsyncStorage.getItem('secretKey')
+            .then((value) => {
+                if (value !== null) {
+                    console.log('publickey', publicKey)
+                    console.log('secretKey:', value)
+                    console.log('p', p)
+                    const keyEncrypter = powerMod(publicKey, value, p)
+                    console.log('keyEncrypter:', keyEncrypter)
+                    setKey(keyEncrypter)
+                } else {
+                    console.log('secretKey not found')
+                }
+            })
+            .catch((error) => {
+                console.error('Error getting userID:', error)
+            })
+    }, [])
+
     useEffect(() => {
         AsyncStorage.getItem('userId')
             .then((value) => {
@@ -40,7 +74,7 @@ const PersonalChat = () => {
                         console.log('userID:', userId)
                     } else {
                         setUserId(value)
-                        console.log('Value:', value)
+                        console.log('UserId:', value)
                     }
                 } else {
                     console.log('userID not found')
@@ -51,58 +85,66 @@ const PersonalChat = () => {
             })
     }, [])
 
-    const getAllMessages = async (userId) => {
-        const chatid =
-            friend > userId ? userId + '-' + friend : friend + '-' + userId
-        const messagesRef = collection(database, 'Chats', chatid, 'messages')
-        const messagesQuery = query(messagesRef, orderBy('createdAt', 'desc'))
+    useEffect(() => {
+        const getAllMessages = async () => {
+            const chatId =
+                friend > userId ? userId + '-' + friend : friend + '-' + userId
+            const messagesRef = collection(
+                database,
+                'Chats',
+                chatId,
+                'messages'
+            )
+            const messagesQuery = query(
+                messagesRef,
+                orderBy('createdAt', 'desc')
+            )
+            const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+                console.log('key', key)
+                const allTheMsgs = querySnapshot.docs.map((docSnap) => {
+                    const data = docSnap.data()
 
-        const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
-            const allTheMsgs = querySnapshot.docs.map((docSnap) => {
-                if (docSnap.exists) {
-                    const createdAt = docSnap.data().createdAt.toDate()
+                    const decryptedText = CryptoJS.AES.decrypt(
+                        data.text,
+                        key
+                    ).toString(CryptoJS.enc.Utf8)
+                    data.text = decryptedText
+                    const createdAt = data.createdAt
+                        ? new Date(data.createdAt.seconds * 1000)
+                        : null
 
                     return {
-                        ...docSnap.data(),
+                        ...data,
                         createdAt,
                     }
+                })
+                if (!querySnapshot.metadata.hasPendingWrites) {
+                    setMessages(allTheMsgs)
                 }
             })
-
-            if (isMounted.current) {
-                setMessages(allTheMsgs)
-            }
-        })
-
-        return unsubscribe
-    }
-
-    const isMounted = useRef(false)
-
-    useEffect(() => {
-        isMounted.current = true
-
-        AsyncStorage.getItem('userId').then((value) => {
-            const unsubscribe = getAllMessages(value)
-            return () => unsubscribe()
-        })
-
-        return () => {
-            isMounted.current = false
+            return unsubscribe
         }
-    }, [])
-    // useEffect(()=>{
 
-    // },[])
+        if (userId) {
+            getAllMessages()
+            setIsLoading(false)
+        }
+    }, [key, userId])
 
-    const onSend = (msgArray) => {
+    const onSend = async (msgArray) => {
         const msg = msgArray[0]
+        console.log('key in onsend', key)
         const usermsg = {
             ...msg,
             sentBy: userId,
             sentTo: friend,
             createdAt: new Date(),
         }
+        const encryptedText = CryptoJS.AES.encrypt(
+            msg.text,
+            `${key}`
+        ).toString()
+        usermsg.text = encryptedText
 
         setMessages((previousMessages) =>
             GiftedChat.append(previousMessages, usermsg)
@@ -111,54 +153,16 @@ const PersonalChat = () => {
         const docid =
             friend > userId ? userId + '-' + friend : friend + '-' + userId
 
-        const docRef = addDoc(
-            collection(database, 'Chats', docid, 'messages'),
-            {
+        try {
+            await addDoc(collection(database, 'Chats', docid, 'messages'), {
                 ...usermsg,
                 createdAt: serverTimestamp(),
-            }
-        )
+            })
+        } catch (error) {
+            console.error('Error adding document: ', error)
+        }
     }
 
-    // const renderSend = (props) => {
-    //     return (
-    //         <Send {...props}>
-    //             <View
-    //                 style={{
-    //                     height: 36,
-    //                     alignItems: 'center',
-    //                     justifyContent: 'center',
-    //                     width: 36,
-    //                     borderRadius: 18,
-    //                     backgroundColor: COLORS.primary,
-    //                     marginRight: 5,
-    //                     marginBottom: 5,
-    //                 }}
-    //             >
-    //                 <FontAwesome name="send" size={12} color={COLORS.white} />
-    //             </View>
-    //         </Send>
-    //     )
-    // }
-
-    // customize sender messages
-    // const renderBubble = (props) => {
-    //     return (
-    //         <Bubble
-    //             {...props}
-    //             wrapperStyle={{
-    //                 right: {
-    //                     backgroundColor: COLORS.primary,
-    //                 },
-    //             }}
-    //             textStyle={{
-    //                 right: {
-    //                     color: COLORS.white,
-    //                 },
-    //             }}
-    //         />
-    //     )
-    // }
     return (
         <SafeAreaView style={{ flex: 1, color: COLORS.secondaryWhite }}>
             <StatusBar style="light" backgroundColor={COLORS.white} />
@@ -179,7 +183,7 @@ const PersonalChat = () => {
                     }}
                 >
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('Contacts')}
+                        onPress={() => navigation.navigate('Chats')}
                     >
                         <MaterialIcons
                             name="keyboard-arrow-left"
@@ -187,6 +191,7 @@ const PersonalChat = () => {
                             color={COLORS.black}
                         />
                     </TouchableOpacity>
+
                     <Text
                         style={{
                             ...FONTS.h4,
@@ -203,17 +208,40 @@ const PersonalChat = () => {
                         flexDirection: 'row',
                         alignItems: 'center',
                     }}
-                ></View>
+                >
+                    <TouchableOpacity
+                        onPress={() =>
+                            navigation.navigate('ProfileAccount', {
+                                username: username,
+                                userId: userId,
+                                email: email,
+                            })
+                        }
+                    >
+                        <Text
+                            style={{
+                                ...FONTS.h4,
+                                textAlign: 'center',
+                                float: 'right',
+                            }}
+                        >
+                            {username}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-
-            <GiftedChat
-                style={{ flex: 1 }}
-                messages={messages}
-                onSend={(text) => onSend(text)}
-                user={{
-                    _id: userId,
-                }}
-            />
+            {isLoading ? (
+                <Loading /> // Hiển thị thành phần Loading nếu isLoading là true
+            ) : (
+                <GiftedChat
+                    style={{ flex: 1 }}
+                    messages={messages}
+                    onSend={(text) => onSend(text)}
+                    user={{
+                        _id: userId,
+                    }}
+                />
+            )}
         </SafeAreaView>
     )
 }

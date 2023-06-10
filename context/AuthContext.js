@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext } from 'react'
 import { useEffect } from 'react'
 import axios from 'axios'
 import { signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebaseConfig'
+import { auth } from '../firebase/firebaseConfig'
 import { Alert } from 'react-native'
 
 export const AuthContext = createContext()
@@ -19,13 +19,11 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(false)
         signInWithEmailAndPassword(auth, email, password)
             .then((res) => {
-                console.log(res)
                 if (res._tokenResponse.idToken) {
-                    console.log(222222 , res);
-                    console.log(222222 , res._tokenResponse.idToken);
-
                     setUserToken(res._tokenResponse.idToken)
-                    setUserId(res.user.uid) // Fixed: Assign user token from response data
+                    setUserId(res.user.uid)
+                    // AsyncStorage.setItem('private key',Math.floor(Math.random() * (max - min + 1) + min))
+                    console.log(Math.floor(Math.random() * (1000 - 0 + 1) + 0))
                     AsyncStorage.setItem(
                         'userToken',
                         res._tokenResponse.idToken
@@ -72,6 +70,3 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     )
 }
-
-// Consume the AuthContext
-// export const useAuth = () => useContext(AuthContext);

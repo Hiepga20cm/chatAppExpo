@@ -8,16 +8,14 @@ import {
     Alert,
     TouchableOpacity,
 } from 'react-native'
-
 import { getDatabase, ref, set } from 'firebase/database'
-
-import { auth } from '../firebaseConfig'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { auth } from '../firebase/firebaseConfig'
 
 import InputField from '../components/InputField'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
-
+import { p, g } from '@env'
 import CustomButton from '../components/CustomButton'
-
 const RegisterScreen = ({ navigation }) => {
     const [name, setName] = useState(null)
     const [email, setEmail] = useState(null)
@@ -31,10 +29,13 @@ const RegisterScreen = ({ navigation }) => {
                     email,
                     password
                 )
-                console.log(res)
                 const uid = res.user.uid
-                await writeUserData(uid, name, email, '')
-                console.log(111111, uid)
+                const secretKey = Math.floor(Math.random() * 100) + 1
+                console.log('secretKey', secretKey)
+                await AsyncStorage.setItem('secretKey', secretKey.toString())
+                const publicKey = g ** secretKey % p
+                console.log('publicKey', publicKey)
+                await writeUserData(uid, name, email, '', publicKey)
 
                 await updateProfile(auth.currentUser, {
                     displayName: name,
@@ -51,13 +52,14 @@ const RegisterScreen = ({ navigation }) => {
         }
     }
 
-    const writeUserData = (userId, name, email, imageUrl) => {
+    const writeUserData = (userId, name, email, imageUrl, publicKey) => {
         const db = getDatabase()
         set(ref(db, 'users/' + userId), {
             username: name,
             email: email,
             profile_picture: imageUrl,
             uuid: userId,
+            publicKey: publicKey,
         })
     }
 
