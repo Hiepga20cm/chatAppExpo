@@ -8,17 +8,101 @@ import {
 } from 'react-native'
 
 import CustomButton from '../components/CustomButton'
-import InputField from '../components/InputField'
+import { Ionicons } from '@expo/vector-icons'
+
 import { AuthContext, AuthProvider } from '../context/AuthContext'
 
 const LoginScreen = ({ navigation }) => {
     const [userName, setUserName] = useState(null)
     const [passWord, setPassWord] = useState(null)
+    const [userNameError, setUserNameError] = useState(null)
+    const [passwordError, setPasswordError] = useState(null)
+    const [showPassword, setShowPassword] = useState(false)
+
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword)
+    }
 
     const context = useContext(AuthContext)
     const userToken = context.userToken
 
     const login = context.login
+
+    const validateEmail = (email) => {
+        // Kiểm tra đúng định dạng email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        return emailRegex.test(email)
+    }
+
+    const validatePassword = (password) => {
+        // Kiểm tra mật khẩu có chữ và số, chữ viết hoa, kí tự đặc biệt, độ dài tối thiểu 6
+        const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#])[A-Za-z\d@$!%*?&^#]{6,}(?![\'\"<>;])$/
+
+        console.log(11111, passwordRegex.test(password))
+        return passwordRegex.test(password)
+    }
+
+    useEffect(() => {
+        if (passwordError !== null && userNameError !== null) {
+            if (
+                !userName ||
+                userName.trim().length === 0 ||
+                !validateEmail(userName)
+            ) {
+                setUserNameError('Please enter a valid email')
+            } else {
+                setUserNameError('')
+            }
+
+            if (
+                !passWord ||
+                passWord.trim().length === 0 ||
+                !validatePassword(passWord)
+            ) {
+                console.log(passWord)
+                setPasswordError(
+                    'Password must contain at least one lowercase letter, one uppercase letter, one number, one special character and at least 6 characters, and contain no prohibited characters'
+                )
+            } else {
+                console.log(passWord)
+                setPasswordError('')
+            }
+        }
+    }, [userName, passWord])
+
+    const handleLogin = () => {
+        console.log('hello')
+        let isValid = true
+
+        if (
+            !userName ||
+            userName.trim().length === 0 ||
+            !validateEmail(userName)
+        ) {
+            setUserNameError('Please enter a valid email')
+            isValid = false
+        } else {
+            setUserNameError(null)
+        }
+
+        if (
+            !passWord ||
+            passWord.trim().length === 0 ||
+            !validatePassword(passWord)
+        ) {
+            setPasswordError(
+                'Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character, and be at least 6 characters long, and not contain < > & " ;'
+            )
+            isValid = false
+        } else {
+            setPasswordError(null)
+        }
+
+        if (isValid) {
+            login(userName, passWord)
+        }
+    }
 
     return (
         <SafeAreaView style={{ flex: 1, justifyContent: 'center' }}>
@@ -33,79 +117,86 @@ const LoginScreen = ({ navigation }) => {
                 >
                     Login
                 </Text>
+                <View style={{ marginBottom: 20 }}>
+                    <Text
+                        style={{
+                            marginBottom: 2,
+                            paddingLeft: 2,
+                            fontWeight: '600',
+                        }}
+                    >
+                        Email
+                    </Text>
+                    <TextInput
+                        style={{
+                            borderBottomColor: '#ccc',
+                            borderBottomWidth: 1,
+                            padding: 10,
 
-                <InputField
-                    label={'User Name'}
-                    value={userName}
-                    onChangeText={(text) => setUserName(text)}
-                />
-
-                <InputField
-                    label={'Password'}
-                    fieldButtonFunction={() => {}}
-                    value={passWord}
-                    onChangeText={(text) => setPassWord(text)}
-                />
-
-                <CustomButton
-                    label={'Login'}
-                    onPress={() => login(userName, passWord)}
-                />
-
-                <Text
-                    style={{
-                        textAlign: 'center',
-                        color: '#666',
-                        marginBottom: 30,
-                    }}
-                >
-                    Or, login with ...
-                </Text>
+                            color: 'gray',
+                        }}
+                        value={userName}
+                        onChangeText={(text) => setUserName(text)}
+                    />
+                    {userNameError && (
+                        <Text style={{ color: 'red', marginTop: 5 }}>
+                            {userNameError}
+                        </Text>
+                    )}
+                </View>
 
                 <View
                     style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        marginBottom: 30,
+                        marginBottom: 20,
+                        borderBottomColor: '#ccc',
+                        borderBottomWidth: 1,
                     }}
                 >
-                    <TouchableOpacity
-                        onPress={() => {}}
+                    <Text
                         style={{
-                            borderColor: '#ddd',
-                            borderWidth: 2,
-                            borderRadius: 10,
-                            paddingHorizontal: 30,
-                            paddingVertical: 10,
+                            marginBottom: 2,
+                            paddingLeft: 2,
+                            fontWeight: '600',
                         }}
                     >
-                        {/* <GoogleSVG height={24} width={24} /> */}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => {}}
-                        style={{
-                            borderColor: '#ddd',
-                            borderWidth: 2,
-                            borderRadius: 10,
-                            paddingHorizontal: 30,
-                            paddingVertical: 10,
-                        }}
+                        Password
+                    </Text>
+                    <View
+                        style={{ flexDirection: 'row', alignItems: 'center' }}
                     >
-                        {/* <FacebookSVG height={24} width={24} /> */}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => {}}
-                        style={{
-                            borderColor: '#ddd',
-                            borderWidth: 2,
-                            borderRadius: 10,
-                            paddingHorizontal: 30,
-                            paddingVertical: 10,
-                        }}
-                    >
-                        {/* <TwitterSVG height={24} width={24} /> */}
-                    </TouchableOpacity>
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                color: 'gray',
+                                padding: 10,
+                            }}
+                            value={passWord}
+                            onChangeText={setPassWord}
+                            secureTextEntry={!showPassword}
+                        />
+                        <TouchableOpacity onPress={toggleShowPassword}>
+                            <Ionicons
+                                name={showPassword ? 'eye-off' : 'eye'}
+                                size={24}
+                                color="gray"
+                                style={{ marginHorizontal: 5 }}
+                            />
+                        </TouchableOpacity>
+                    </View>
                 </View>
+                {passwordError && (
+                    <Text
+                        style={{
+                            color: 'red',
+                            marginTop: -15,
+                            marginBottom: 20,
+                        }}
+                    >
+                        {passwordError}
+                    </Text>
+                )}
+
+                <CustomButton label={'Login'} onPress={handleLogin} />
 
                 <View
                     style={{

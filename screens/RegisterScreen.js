@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     SafeAreaView,
     ScrollView,
@@ -11,6 +11,7 @@ import {
 import { getDatabase, ref, set } from 'firebase/database'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { auth } from '../firebase/firebaseConfig'
+import { Ionicons } from '@expo/vector-icons'
 
 import InputField from '../components/InputField'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
@@ -20,9 +21,115 @@ const RegisterScreen = ({ navigation }) => {
     const [name, setName] = useState(null)
     const [email, setEmail] = useState(null)
     const [password, setPassWord] = useState(null)
+    const [userNameError, setUserNameError] = useState(null)
+    const [passwordError, setPasswordError] = useState(null)
+    const [nameError, setNameError] = useState(null)
+
+    const [showPassword, setShowPassword] = useState(false)
+  
+
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword)
+    }
+
+    const validateName = (name) => {
+        // Kiểm tra không có kí tự đặc biệt và có ít nhất 3 kí tự
+        const nameRegex = /^[a-zA-Z0-9]{3,}$/
+        return nameRegex.test(name)
+      }
+
+    const validateEmail = (email) => {
+        // Kiểm tra đúng định dạng email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        return emailRegex.test(email)
+    }
+
+    const validatePassword = (password) => {
+        // Kiểm tra mật khẩu có chữ và số, chữ viết hoa, kí tự đặc biệt, độ dài tối thiểu 6
+        const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#])[A-Za-z\d@$!%*?&^#]{6,}(?![\'\"<>;])$/
+
+        console.log(11111, passwordRegex.test(password))
+        return passwordRegex.test(password)
+    }
+
+    useEffect(() => {
+        if (passwordError !== null && userNameError !== null, nameError != null) {
+            if (
+                !email ||
+                email.trim().length === 0 ||
+                !validateEmail(email)
+            ) {
+                setUserNameError('Please enter a valid email')
+            } else {
+                setUserNameError('')
+            }
+
+            if (
+                !name ||
+                name.trim().length === 0 ||
+                !validateName(name)
+            ) {
+                setNameError('Please enter name with at least 3 characters and no special characters')
+            } else {
+                setNameError('')
+            }
+
+            if (
+                !password ||
+                password.trim().length === 0 ||
+                !validatePassword(password)
+            ) {
+                console.log(password)
+                setPasswordError(
+                    'Password must contain at least one lowercase letter, one uppercase letter, one number, one special character and at least 6 characters, and contain no prohibited characters'
+                )
+            } else {
+                console.log(password)
+                setPasswordError('')
+            }
+        }
+    }, [email, password, name])
 
     const handleSignUp = async () => {
-        if (email !== '' && password !== '') {
+        console.log('hello')
+        let isValid = true
+
+        if (
+            !email ||
+            email.trim().length === 0 ||
+            !validateEmail(email)
+        ) {
+            setUserNameError('Please enter a valid email')
+            isValid = false
+        } else {
+            setUserNameError(null)
+        }
+        if (
+            !name ||
+            name.trim().length === 0 ||
+            !validateName(name)
+        ) {
+            setNameError('Please enter name with at least 3 characters and no special characters')
+            isValid = false
+        } else {
+            setUserNameError('')
+        }
+
+        if (
+            !password ||
+            password.trim().length === 0 ||
+            !validatePassword(password)
+        ) {
+            setPasswordError(
+                'Password must contain at least one lowercase letter, one uppercase letter, one number, one special character and at least 6 characters, and contain no prohibited characters'
+            )
+            isValid = false
+        } else {
+            setPasswordError(null)
+        }
+
+        if (isValid) {
             try {
                 const res = await createUserWithEmailAndPassword(
                     auth,
@@ -48,7 +155,7 @@ const RegisterScreen = ({ navigation }) => {
                 alert(err)
             }
         } else {
-            alert('Fill all fields')
+           console.log('bug regis')
         }
     }
 
@@ -81,25 +188,112 @@ const RegisterScreen = ({ navigation }) => {
                 >
                     Register
                 </Text>
-                <InputField
-                    label={'Name'}
-                    value={name}
-                    onChangeText={(text) => setName(text)}
-                />
+                <View style={{ marginBottom: 20 }}>
+                    <Text
+                        style={{
+                            marginBottom: 2,
+                            paddingLeft: 2,
+                            fontWeight: '600',
+                        }}
+                    >
+                        Name
+                    </Text>
+                    <TextInput
+                        style={{
+                            borderBottomColor: '#ccc',
+                            borderBottomWidth: 1,
+                            padding: 10,
 
-                <InputField
-                    label={'Email'}
-                    keyboardType="email-address"
-                    value={email}
-                    onChangeText={(text) => setEmail(text)}
-                />
+                            color: 'gray',
+                        }}
+                        value={name}
+                        onChangeText={(text) => setName(text)}
+                    />
+                    {nameError && (
+                        <Text style={{ color: 'red', marginTop: 5 }}>
+                            {nameError}
+                        </Text>
+                    )}
+                </View>
 
-                <InputField
-                    label={'Password'}
-                    inputType="password"
-                    value={password}
-                    onChangeText={(text) => setPassWord(text)}
-                />
+                <View style={{ marginBottom: 20 }}>
+                    <Text
+                        style={{
+                            marginBottom: 2,
+                            paddingLeft: 2,
+                            fontWeight: '600',
+                        }}
+                    >
+                        Email
+                    </Text>
+                    <TextInput
+                        style={{
+                            borderBottomColor: '#ccc',
+                            borderBottomWidth: 1,
+                            padding: 10,
+
+                            color: 'gray',
+                        }}
+                        value={email}
+                        onChangeText={(text) => setEmail(text)}
+                    />
+                     {userNameError && (
+                        <Text style={{ color: 'red', marginTop: 5 }}>
+                            {userNameError}
+                        </Text>
+                    )}
+                </View>
+
+                <View
+                    style={{
+                        marginBottom: 20,
+                        borderBottomColor: '#ccc',
+                        borderBottomWidth: 1,
+                    }}
+                >
+                    <Text
+                        style={{
+                            marginBottom: 2,
+                            paddingLeft: 2,
+                            fontWeight: '600',
+                        }}
+                    >
+                        Password
+                    </Text>
+                    <View
+                        style={{ flexDirection: 'row', alignItems: 'center' }}
+                    >
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                color: 'gray',
+                                padding: 10,
+                            }}
+                            value={password}
+                            onChangeText={setPassWord}
+                            secureTextEntry={!showPassword}
+                        />
+                        <TouchableOpacity onPress={toggleShowPassword}>
+                            <Ionicons
+                                name={showPassword ? 'eye-off' : 'eye'}
+                                size={24}
+                                color="gray"
+                                style={{ marginHorizontal: 5 }}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                {passwordError && (
+                    <Text
+                        style={{
+                            color: 'red',
+                            marginTop: -15,
+                            marginBottom: 20,
+                        }}
+                    >
+                        {passwordError}
+                    </Text>
+                )}
 
                 {/* <InputField label={'Confirm Password'} inputType="password" /> */}
 
