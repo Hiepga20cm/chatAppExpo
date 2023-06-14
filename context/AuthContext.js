@@ -3,9 +3,9 @@ import React, { createContext, useState, useContext } from 'react'
 import { useEffect } from 'react'
 import axios from 'axios'
 import { signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebase/firebaseConfig'
+import { auth1 } from '../firebase/firebaseConfig'
 import { Alert } from 'react-native'
-
+ 
 export const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
     const login = (email, password) => {
         setIsLoading(true)
         setIsLoading(false)
-        signInWithEmailAndPassword(auth, email, password)
+        signInWithEmailAndPassword(auth1, email, password)
             .then((res) => {
                 if (res._tokenResponse.idToken) {
                     setUserToken(res._tokenResponse.idToken)

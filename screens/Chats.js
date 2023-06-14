@@ -9,21 +9,23 @@ import {
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PageContainer from '../components/PageContainer'
-import { MaterialCommunityIcons, AntDesign, Ionicons } from '@expo/vector-icons'
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'
 import { FONTS, COLORS } from '../constants'
 import { contacts } from '../constants/data'
 import { getDatabase, ref, onValue, get } from 'firebase/database'
 import { useEffect } from 'react'
-import { Avatar } from 'react-native-elements'
+// import { Avatar } from 'react-native-elements'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { auth, collection, database } from '../firebase/firebaseConfig'
-import { doc, getDoc, getDocs } from 'firebase/firestore'
+// import { auth, collection, database } from '../firebase/firebaseConfig'
+// import { doc, getDoc, getDocs } from 'firebase/firestore'
+import Loading from '../components/Loading'
+
 const db = getDatabase()
 const Chats = ({ navigation }) => {
     const [search, setSearch] = useState('')
     const [allUsers, setAllUsers] = useState([])
     const [filteredUsers, setFilteredUsers] = useState([])
-
+    const [isLoading, setIsLoading] = useState(true)
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -48,6 +50,7 @@ const Chats = ({ navigation }) => {
                     // }
                     setAllUsers(filteredUsersArray)
                     setFilteredUsers(filteredUsersArray)
+                    setIsLoading(false)
                 } else {
                     console.log('userID not found')
                 }
@@ -75,12 +78,7 @@ const Chats = ({ navigation }) => {
         )
         setFilteredUsers(filteredData)
     }
-    const getFirstKey = (str) => {
-        if (str) {
-            return str.split('')[0].toUpperCase()
-        }
-        return ''
-    }
+
     const renderItem = ({ item, index }) => (
         <TouchableOpacity
             key={index}
@@ -134,7 +132,9 @@ const Chats = ({ navigation }) => {
 
                 {item.profile_picture ? (
                     <Image
-                        source={item.profile_picture}
+                        source={{
+                            uri: 'https://vnn-imgs-f.vgcloud.vn/2020/03/23/11/trend-avatar-1.jpg',
+                        }}
                         resizeMode="contain"
                         style={{
                             height: 50,
@@ -172,85 +172,89 @@ const Chats = ({ navigation }) => {
     )
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <PageContainer>
-                <View style={{ flex: 1 }}>
-                    <View
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginHorizontal: 22,
-                            marginTop: 22,
-                        }}
-                    >
-                        <Text style={{ ...FONTS.h4 }}>Chats</Text>
-                        <View style={{ flexDirection: 'row' }}>
-                            <TouchableOpacity
-                                onPress={() => console.log('Add contacts')}
-                            >
-                                <MaterialCommunityIcons
-                                    name="message-badge-outline"
-                                    size={20}
-                                    color={COLORS.secondaryBlack}
-                                />
-                            </TouchableOpacity>
-                            <TouchableOpacity
+            {isLoading ? (
+                <Loading /> // Hiển thị thành phần Loading nếu isLoading là true
+            ) : (
+                <PageContainer>
+                    <View style={{ flex: 1 }}>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginHorizontal: 22,
+                                marginTop: 22,
+                            }}
+                        >
+                            <Text style={{ ...FONTS.h4 }}>Chats</Text>
+                            <View style={{ flexDirection: 'row' }}>
+                                <TouchableOpacity
+                                    onPress={() => console.log('Add contacts')}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="message-badge-outline"
+                                        size={20}
+                                        color={COLORS.secondaryBlack}
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={{
+                                        marginLeft: 12,
+                                    }}
+                                    onPress={() => componentDidMount()}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="playlist-check"
+                                        size={20}
+                                        color={COLORS.secondaryBlack}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <View
+                            style={{
+                                marginHorizontal: 22,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: COLORS.secondaryWhite,
+                                height: 48,
+                                marginVertical: 22,
+                                paddingHorizontal: 12,
+                                borderRadius: 20,
+                            }}
+                        >
+                            <Ionicons
+                                name="ios-search-outline"
+                                size={24}
+                                color={COLORS.black}
+                            />
+
+                            <TextInput
                                 style={{
-                                    marginLeft: 12,
+                                    width: '100%',
+                                    height: '100%',
+                                    marginHorizontal: 12,
                                 }}
-                                onPress={() => componentDidMount()}
-                            >
-                                <MaterialCommunityIcons
-                                    name="playlist-check"
-                                    size={20}
-                                    color={COLORS.secondaryBlack}
-                                />
-                            </TouchableOpacity>
+                                value={search}
+                                onChangeText={handleSearch}
+                                placeholder="Search contact..."
+                            />
+                        </View>
+
+                        <View
+                            style={{
+                                paddingBottom: 100,
+                            }}
+                        >
+                            <FlatList
+                                data={filteredUsers}
+                                renderItem={renderItem}
+                                keyExtractor={(item) => item.uuid}
+                            />
                         </View>
                     </View>
-                    <View
-                        style={{
-                            marginHorizontal: 22,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            backgroundColor: COLORS.secondaryWhite,
-                            height: 48,
-                            marginVertical: 22,
-                            paddingHorizontal: 12,
-                            borderRadius: 20,
-                        }}
-                    >
-                        <Ionicons
-                            name="ios-search-outline"
-                            size={24}
-                            color={COLORS.black}
-                        />
-
-                        <TextInput
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                marginHorizontal: 12,
-                            }}
-                            value={search}
-                            onChangeText={handleSearch}
-                            placeholder="Search contact..."
-                        />
-                    </View>
-
-                    <View
-                        style={{
-                            paddingBottom: 100,
-                        }}
-                    >
-                        <FlatList
-                            data={filteredUsers}
-                            renderItem={renderItem}
-                            keyExtractor={(item) => item.uuid}
-                        />
-                    </View>
-                </View>
-            </PageContainer>
+                </PageContainer>
+            )}
         </SafeAreaView>
     )
 }

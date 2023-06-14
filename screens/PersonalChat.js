@@ -1,10 +1,16 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState, useCallback, useContext } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLORS, SIZES, FONTS } from '../constants'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
-import { GiftedChat, Send, Bubble, Avatar } from 'react-native-gifted-chat'
+import {
+    GiftedChat,
+    Send,
+    Bubble,
+    Avatar,
+    InputToolbar,
+} from 'react-native-gifted-chat'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { auth, database } from '../firebase/firebaseConfig'
 import Loading from '../components/Loading'
@@ -17,6 +23,7 @@ import {
     getDocs,
     orderBy,
     onSnapshot,
+    limit,
 } from 'firebase/firestore'
 import CryptoJS from 'react-native-crypto-js'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -51,11 +58,11 @@ const PersonalChat = () => {
         AsyncStorage.getItem('secretKey')
             .then((value) => {
                 if (value !== null) {
-                    console.log('publickey', publicKey)
-                    console.log('secretKey:', value)
-                    console.log('p', p)
+                    // console.log('publickey', publicKey)
+                    // console.log('secretKey:', value)
+                    // console.log('p', p)
                     const keyEncrypter = powerMod(publicKey, value, p)
-                    console.log('keyEncrypter:', keyEncrypter)
+                    //console.log('keyEncrypter:', keyEncrypter)
                     setKey(keyEncrypter)
                 } else {
                     console.log('secretKey not found')
@@ -97,18 +104,26 @@ const PersonalChat = () => {
             )
             const messagesQuery = query(
                 messagesRef,
-                orderBy('createdAt', 'desc')
+                orderBy('createdAt', 'desc'),
+                limit(20)
             )
             const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
-                console.log('key', key)
+                // console.log('key', key)
                 const allTheMsgs = querySnapshot.docs.map((docSnap) => {
                     const data = docSnap.data()
+                    try {
+                        const decryptedText = CryptoJS.AES.decrypt(
+                            data.text,
+                            `${key}`
+                        ).toString(CryptoJS.enc.Utf8)
+                        //console.log('giai ma khi onsnapshot', decryptedText)
+                        data.text = decryptedText
+                    } catch (error) {
+                        console.log(error)
+                    }
 
-                    const decryptedText = CryptoJS.AES.decrypt(
-                        data.text,
-                        key
-                    ).toString(CryptoJS.enc.Utf8)
-                    data.text = decryptedText
+                    // data.text = decryptedText
+
                     const createdAt = data.createdAt
                         ? new Date(data.createdAt.seconds * 1000)
                         : null
@@ -133,17 +148,32 @@ const PersonalChat = () => {
 
     const onSend = async (msgArray) => {
         const msg = msgArray[0]
-        console.log('key in onsend', key)
+        // console.log('key in onsend', key)
         const usermsg = {
             ...msg,
             sentBy: userId,
             sentTo: friend,
             createdAt: new Date(),
         }
+
+        // usermsg.text = encryptedText
+        //console.log('usermes.text:', usermsg.text)
         const encryptedText = CryptoJS.AES.encrypt(
             msg.text,
             `${key}`
         ).toString()
+        // console.log(encryptedText)
+        // try {
+        //     console.log(
+        //         'giai max:',
+        //         CryptoJS.AES.decrypt(encryptedText, `${key}`).toString(
+        //             CryptoJS.enc.Utf8
+        //         )
+        //     )
+        // } catch (error) {
+        //     console.log(error)
+        // }
+
         usermsg.text = encryptedText
 
         setMessages((previousMessages) =>
@@ -162,7 +192,16 @@ const PersonalChat = () => {
             console.error('Error adding document: ', error)
         }
     }
-
+    const deleteMessage = async (messageId) => {
+        const docid =
+            friend > userId ? userId + '-' + friend : friend + '-' + userId
+        const messageRef = collection(database, 'Chats', docid, 'messages')
+        try {
+            await messageRef.doc(messageId).delete()
+        } catch (error) {
+            console.error('Error deleting message: ', error)
+        }
+    }
     return (
         <SafeAreaView style={{ flex: 1, color: COLORS.secondaryWhite }}>
             <StatusBar style="light" backgroundColor={COLORS.white} />
@@ -240,6 +279,14 @@ const PersonalChat = () => {
                     user={{
                         _id: userId,
                     }}
+                    renderInputToolbar={(props) => (
+                        <InputToolbar
+                            {...props}
+                            renderLoading={() => (
+                                <ActivityIndicator size="small" color="black" />
+                            )}
+                        />
+                    )}
                 />
             )}
         </SafeAreaView>

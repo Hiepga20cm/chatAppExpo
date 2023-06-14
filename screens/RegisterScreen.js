@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { getDatabase, ref, set } from 'firebase/database'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { auth } from '../firebase/firebaseConfig'
+import { auth1 } from '../firebase/firebaseConfig'
 
 import InputField from '../components/InputField'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
@@ -25,7 +25,7 @@ const RegisterScreen = ({ navigation }) => {
         if (email !== '' && password !== '') {
             try {
                 const res = await createUserWithEmailAndPassword(
-                    auth,
+                    auth1,
                     email,
                     password
                 )
@@ -37,7 +37,7 @@ const RegisterScreen = ({ navigation }) => {
                 console.log('publicKey', publicKey)
                 await writeUserData(uid, name, email, '', publicKey)
 
-                await updateProfile(auth.currentUser, {
+                await updateProfile(auth1.currentUser, {
                     displayName: name,
                 })
 
