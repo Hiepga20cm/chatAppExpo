@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import PageContainer from '../components/PageContainer'
 import { COLORS, FONTS } from '../constants'
 import { AuthContext, AuthProvider } from '../context/AuthContext'
-import { database } from '../firebase/firebaseConfig'
 import { getDatabase, ref, onValue, get } from 'firebase/database'
 import {
     AntDesign,
@@ -20,7 +19,6 @@ import { useNavigation } from '@react-navigation/native'
 const db = getDatabase()
 const More = () => {
     const context = useContext(AuthContext)
-    const userToken = context.userToken
     const logout = context.logout
     const navigation = useNavigation()
     const [userProfile, setUserProfile] = useState({})
@@ -60,7 +58,7 @@ const More = () => {
                         marginVertical: 22,
                     }}
                 >
-                    <Text style={{ ...FONTS.h4 }}>More</Text>
+                    <Text style={{ ...FONTS.h4, fontSize: 20, fontWeight:'bold' }}>Profile</Text>
                 </View>
                 <View
                     style={{
@@ -82,9 +80,9 @@ const More = () => {
                     >
                         {userProfile.profile_picture ? (
                             <Avatar
-                                size={'medium'}
+                                size={'large'}
+                                source={{ uri: userProfile.profile_picture }}
                                 rounded
-                                title={`A`}
                                 containerStyle={{ backgroundColor: 'blue' }}
                             />
                         ) : (
@@ -147,7 +145,7 @@ const More = () => {
                         />
                     </TouchableOpacity>
 
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         onPress={() => {
                             console.log('Pressed')
                         }}
@@ -179,7 +177,7 @@ const More = () => {
                             size={24}
                             color={COLORS.black}
                         />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
                     <TouchableOpacity
                         onPress={() => {

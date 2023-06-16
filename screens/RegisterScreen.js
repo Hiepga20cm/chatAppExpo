@@ -7,13 +7,17 @@ import {
     TextInput,
     Alert,
     TouchableOpacity,
+    Image,
 } from 'react-native'
-import { getDatabase, ref, set } from 'firebase/database'
+import { getDatabase, ref as Ref, set } from 'firebase/database'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { auth } from '../firebase/firebaseConfig'
+import { auth, storage } from '../firebase/firebaseConfig'
 import { Ionicons } from '@expo/vector-icons'
+import * as ImagePicker from 'expo-image-picker'
+import { ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage'
 
 import InputField from '../components/InputField'
+
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { p, g } from '@env'
 import CustomButton from '../components/CustomButton'
@@ -24,9 +28,125 @@ const RegisterScreen = ({ navigation }) => {
     const [userNameError, setUserNameError] = useState(null)
     const [passwordError, setPasswordError] = useState(null)
     const [nameError, setNameError] = useState(null)
+    const [url,setUrl]  =  useState(null);
 
     const [showPassword, setShowPassword] = useState(false)
-  
+    const [image, setImage] = useState(null)
+    const [imageDisplay, setImageDisplay] = useState(null)
+
+    const pickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.1,
+        })
+
+        console.log(result)
+
+        if (!result.cancelled) {
+            setImageDisplay(result.uri)
+            setImage(result.uri)
+        }
+    }
+
+    useEffect(() => {
+        if (image !== null) {
+            submitData()
+            setImage(null)
+        }
+    }, [image])
+
+    const submitData = async () => {
+        console.log(image)
+
+        try {
+            const blobImage = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest()
+                xhr.onload = function () {
+                    resolve(xhr.response)
+                }
+                xhr.onerror = function (e) {
+                    reject(new TypeError('Network request failed'))
+                }
+                xhr.responseType = 'blob'
+                xhr.open('GET', image, true)
+                xhr.send(null)
+            })
+
+            // Create the file metadata
+            /** @type {any} */
+            const metadata = {
+                contentType: 'image/jpeg',
+            }
+
+            // Upload file and metadata to the object 'images/mountains.jpg'
+            const storageRef = ref(storage, 'images/' + Date.now())
+            const uploadTask = uploadBytesResumable(
+                storageRef,
+                blobImage,
+                metadata
+            )
+
+            // Listen for state changes, errors, and completion of the upload.
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                    const progress =
+                        (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                    console.log('Upload is ' + progress + '% done')
+                    switch (snapshot.state) {
+                        case 'paused':
+                            console.log('Upload is paused')
+                            break
+                        case 'running':
+                            console.log('Upload is running')
+                            break
+                    }
+                },
+                (error) => {
+                    // A full list of error codes is available at
+                    // https://firebase.google.com/docs/storage/web/handle-errors
+                    switch (error.code) {
+                        case 'storage/unauthorized':
+                            // User doesn't have permission to access the object
+                            break
+                        case 'storage/canceled':
+                            // User canceled the upload
+                            break
+
+                        // ...
+
+                        case 'storage/unknown':
+                            // Unknown error occurred, inspect error.serverResponse
+                            break
+                    }
+                },
+                () => {
+                    // Upload completed successfully, now we can get the download URL
+                    getDownloadURL(uploadTask.snapshot.ref).then(
+                        (downloadURL) => {
+                            console.log('File available at', downloadURL)
+                            setUrl(downloadURL)
+                        }
+                    )
+                }
+            )
+        } catch (error) {
+            console.log(1111111, error.message)
+        }
+    }
+
+    // Read the image data as a blob
+
+    // uploadBytes(storageRef, blob, metadata)
+    //     .then((snapshot) => {
+    //         console.log('Upload OK')
+    //     })
+    //     .catch((error) => {
+    //         console.log(error.message)
+    //     })
 
     const toggleShowPassword = () => {
         setShowPassword(!showPassword)
@@ -36,7 +156,7 @@ const RegisterScreen = ({ navigation }) => {
         // Kiểm tra không có kí tự đặc biệt và có ít nhất 3 kí tự
         const nameRegex = /^[a-zA-Z0-9]{3,}$/
         return nameRegex.test(name)
-      }
+    }
 
     const validateEmail = (email) => {
         // Kiểm tra đúng định dạng email
@@ -47,30 +167,27 @@ const RegisterScreen = ({ navigation }) => {
     const validatePassword = (password) => {
         // Kiểm tra mật khẩu có chữ và số, chữ viết hoa, kí tự đặc biệt, độ dài tối thiểu 6
         const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#])[A-Za-z\d@$!%*?&^#]{6,}(?![\'\"<>;])$/
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#])[A-Za-z\d@$!%*?&^#]{6,}(?![\'\"<>;])$/
 
         console.log(11111, passwordRegex.test(password))
         return passwordRegex.test(password)
     }
 
     useEffect(() => {
-        if (passwordError !== null && userNameError !== null, nameError != null) {
-            if (
-                !email ||
-                email.trim().length === 0 ||
-                !validateEmail(email)
-            ) {
+        if (
+            (passwordError !== null && userNameError !== null,
+            nameError != null)
+        ) {
+            if (!email || email.trim().length === 0 || !validateEmail(email)) {
                 setUserNameError('Please enter a valid email')
             } else {
                 setUserNameError('')
             }
 
-            if (
-                !name ||
-                name.trim().length === 0 ||
-                !validateName(name)
-            ) {
-                setNameError('Please enter name with at least 3 characters and no special characters')
+            if (!name || name.trim().length === 0 || !validateName(name)) {
+                setNameError(
+                    'Please enter name with at least 3 characters and no special characters'
+                )
             } else {
                 setNameError('')
             }
@@ -95,22 +212,16 @@ const RegisterScreen = ({ navigation }) => {
         console.log('hello')
         let isValid = true
 
-        if (
-            !email ||
-            email.trim().length === 0 ||
-            !validateEmail(email)
-        ) {
+        if (!email || email.trim().length === 0 || !validateEmail(email)) {
             setUserNameError('Please enter a valid email')
             isValid = false
         } else {
             setUserNameError(null)
         }
-        if (
-            !name ||
-            name.trim().length === 0 ||
-            !validateName(name)
-        ) {
-            setNameError('Please enter name with at least 3 characters and no special characters')
+        if (!name || name.trim().length === 0 || !validateName(name)) {
+            setNameError(
+                'Please enter name with at least 3 characters and no special characters'
+            )
             isValid = false
         } else {
             setUserNameError('')
@@ -130,6 +241,7 @@ const RegisterScreen = ({ navigation }) => {
         }
 
         if (isValid) {
+            // await submitData();
             try {
                 const res = await createUserWithEmailAndPassword(
                     auth,
@@ -142,30 +254,32 @@ const RegisterScreen = ({ navigation }) => {
                 await AsyncStorage.setItem('secretKey', secretKey.toString())
                 const publicKey = g ** secretKey % p
                 console.log('publicKey', publicKey)
-                await writeUserData(uid, name, email, '', publicKey)
 
-                await updateProfile(auth.currentUser, {
+                writeUserData(uid, name, email, url, publicKey)
+
+                updateProfile(auth.currentUser, {
                     displayName: name,
                 })
 
                 alert('User created successfully')
+
                 navigation.navigate('LoginScreen')
             } catch (err) {
                 console.log(err)
                 alert(err)
             }
         } else {
-           console.log('bug regis')
+            console.log('bug regis')
         }
     }
 
-    const writeUserData = (userId, name, email, imageUrl, publicKey) => {
+    const writeUserData = (userId, name, email, url, publicKey) => {
         const db = getDatabase()
-        set(ref(db, 'users/' + userId), {
+        set(Ref(db, 'users/' + userId), {
             username: name,
             email: email,
-            profile_picture: imageUrl,
             uuid: userId,
+            profile_picture: url,
             publicKey: publicKey,
         })
     }
@@ -184,6 +298,7 @@ const RegisterScreen = ({ navigation }) => {
                         fontWeight: '500',
                         color: '#333',
                         marginBottom: 30,
+                        marginTop: 70,
                     }}
                 >
                     Register
@@ -237,7 +352,7 @@ const RegisterScreen = ({ navigation }) => {
                         value={email}
                         onChangeText={(text) => setEmail(text)}
                     />
-                     {userNameError && (
+                    {userNameError && (
                         <Text style={{ color: 'red', marginTop: 5 }}>
                             {userNameError}
                         </Text>
@@ -296,6 +411,28 @@ const RegisterScreen = ({ navigation }) => {
                 )}
 
                 {/* <InputField label={'Confirm Password'} inputType="password" /> */}
+
+                <View style={{ marginBottom: 20 }}>
+                    <Text
+                        style={{
+                            marginBottom: 2,
+                            paddingLeft: 2,
+                            fontWeight: '600',
+                        }}
+                    >
+                        Profile Picture
+                    </Text>
+                    <TouchableOpacity onPress={pickImage}>
+                        {imageDisplay ? (
+                            <Image
+                                source={{ uri: imageDisplay }}
+                                style={{ width: 100, height: 100 }}
+                            />
+                        ) : (
+                            <Text style={{ color: 'blue' }}>Select Image</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
 
                 <CustomButton
                     label={'Register'}

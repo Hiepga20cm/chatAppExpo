@@ -1,10 +1,10 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
+import { getStorage, ref } from "firebase/storage";
 import {
     getFirestore,
     collection,
     addDoc,
-    ref,
     push,
     onValue,
 } from 'firebase/firestore'
@@ -20,8 +20,13 @@ const firebaseConfig = {
 }
 // initialize firebase
 
+
 const app = initializeApp(firebaseConfig)
+
+// Create a root reference
+const storage = getStorage(app);
+
 export const auth = getAuth()
 const database = getFirestore(app)
 
-export { database, getFirestore, collection, addDoc, ref, push, onValue }
+export { database, getFirestore, collection, addDoc, ref, push, onValue, storage }

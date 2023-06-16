@@ -64,7 +64,8 @@ const Contacts = ({ navigation }) => {
                             username: user.username,
                             uuid: user.uuid,
                         }))
-                    setListUser(userList)
+                    setListUser(userList);
+                    setFilteredUsers(userList);
                 } else {
                     console.log('No data available')
                 }
@@ -77,12 +78,13 @@ const Contacts = ({ navigation }) => {
     const [search, setSearch] = useState('')
     const [filteredUsers, setFilteredUsers] = useState()
 
+
     const handleSearch = (text) => {
-        // setSearch(text)
-        // const filteredData = contacts.filter((user) =>
-        //     user.userName.toLowerCase().includes(text.toLowerCase())
-        // )
-        // setFilteredUsers(filteredData)
+        setSearch(text)
+        const filteredData = listUser.filter((user) =>
+            user.username.toLowerCase().includes(text.toLowerCase())
+        )
+        setFilteredUsers(filteredData)
     }
 
     const renderItem = ({ item, index }) => (
@@ -115,45 +117,34 @@ const Contacts = ({ navigation }) => {
                     marginRight: 22,
                 }}
             >
-                {/* {item.isOnline && item.isOnline == true && (
-              <View
-                style={{
-                  height: 14,
-                  width: 14,
-                  borderRadius: 7,
-                  backgroundColor: COLORS.green,
-                  borderColor: COLORS.white,
-                  borderWidth: 2,
-                  position: 'absolute',
-                  top: 14,
-                  right: 2,
-                  zIndex: 1000,
-                }}
-              ></View>
-            )} */}
+                {item.profile_picture ? (
+                    <Image
+                        source={{ uri: item.profile_picture }}
+                        resizeMode="contain"
+                        style={{
+                            height: 50,
+                            width: 50,
+                            borderRadius: 25,
+                        }}
+                    />
+                ) : (
+                    <Image
+                        source={{
+                            uri: 'https://vnn-imgs-f.vgcloud.vn/2020/03/23/11/trend-avatar-1.jpg',
+                        }}
+                        resizeMode="contain"
+                        style={{
+                            height: 50,
+                            width: 50,
+                            borderRadius: 25,
+                        }}
+                    />
+                )}
+            </View>
 
-                {/* <Image
-              source={item.userImg}
-              resizeMode="contain"
-              style={{
-                height: 50,
-                width: 50,
-                borderRadius: 25,
-              }}
-            /> */}
-            </View>
-            <View
-                style={{
-                    flexDirection: 'column',
-                }}
-            >
-                <Text style={{ ...FONTS.h4, marginBottom: 4 }}>
-                    {item.username}
-                </Text>
-                {/* <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
-              {item.lastSeen}
-            </Text> */}
-            </View>
+            <Text style={{ ...FONTS.h4, marginBottom: 4 }}>
+                {item.username}
+            </Text>
         </TouchableOpacity>
     )
     return (
@@ -169,8 +160,8 @@ const Contacts = ({ navigation }) => {
                             marginTop: 22,
                         }}
                     >
-                        <Text style={{ ...FONTS.h4 }}>Contacts</Text>
-                        <TouchableOpacity
+                        <Text style={{ ...FONTS.h4, fontSize: 20, fontWeight:'bold' }}>Contacts</Text>
+                        {/* <TouchableOpacity
                             onPress={() => console.log('Add contacts')}
                         >
                             <AntDesign
@@ -178,7 +169,7 @@ const Contacts = ({ navigation }) => {
                                 size={20}
                                 color={COLORS.secondaryBlack}
                             />
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                     <View
                         style={{
@@ -216,7 +207,7 @@ const Contacts = ({ navigation }) => {
                         }}
                     >
                         <FlatList
-                            data={listUser}
+                            data={filteredUsers}
                             renderItem={renderItem}
                             // keyExtractor={(item) => item.id.toString()}
                         />

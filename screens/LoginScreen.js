@@ -109,7 +109,7 @@ const LoginScreen = ({ navigation }) => {
             <View style={{ paddingHorizontal: 25 }}>
                 <Text
                     style={{
-                        fontSize: 28,
+                        fontSize: 38,
                         fontWeight: '500',
                         color: '#333',
                         marginBottom: 30,

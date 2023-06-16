@@ -115,26 +115,10 @@ const Chats = ({ navigation }) => {
                     marginRight: 22,
                 }}
             >
-                {item.isOnline && item.isOnline == true && (
-                    <View
-                        style={{
-                            height: 14,
-                            width: 14,
-                            borderRadius: 7,
-                            backgroundColor: COLORS.green,
-                            borderColor: COLORS.white,
-                            borderWidth: 2,
-                            position: 'absolute',
-                            top: 14,
-                            right: 2,
-                            zIndex: 1000,
-                        }}
-                    ></View>
-                )}
 
                 {item.profile_picture ? (
                     <Image
-                        source={item.profile_picture}
+                    source={{ uri: item.profile_picture }}
                         resizeMode="contain"
                         style={{
                             height: 50,
@@ -183,8 +167,8 @@ const Chats = ({ navigation }) => {
                             marginTop: 22,
                         }}
                     >
-                        <Text style={{ ...FONTS.h4 }}>Chats</Text>
-                        <View style={{ flexDirection: 'row' }}>
+                        <Text style={{ ...FONTS.h4, fontSize: 20, fontWeight:'bold'}}>Chats</Text>
+                        {/* <View style={{ flexDirection: 'row' }}>
                             <TouchableOpacity
                                 onPress={() => console.log('Add contacts')}
                             >
@@ -206,7 +190,7 @@ const Chats = ({ navigation }) => {
                                     color={COLORS.secondaryBlack}
                                 />
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
                     </View>
                     <View
                         style={{
