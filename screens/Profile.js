@@ -12,10 +12,8 @@ import { useRoute } from '@react-navigation/native'
 
 const Profile = ({ navigation }) => {
     const route = useRoute()
-    // const { username, userId, email } = route.params
-    const username = 'username'
-    const userId = 1
-    const email = 'email'
+    const { username, email, avatar } = route.params
+    //const username = 'username'
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -36,12 +34,21 @@ const Profile = ({ navigation }) => {
                             justifyContent: 'center',
                         }}
                     >
-                        <Avatar
-                            size={'xlarge'}
-                            rounded
-                            title={`H`}
-                            containerStyle={{ backgroundColor: 'blue' }}
-                        />
+                        {avatar ? (
+                            <Avatar
+                                size={'xlarge'}
+                                rounded
+                                source={{ uri: avatar }}
+                                containerStyle={{ backgroundColor: 'blue' }}
+                            />
+                        ) : (
+                            <Avatar
+                                size={'xlarge'}
+                                rounded
+                                title="H"
+                                containerStyle={{ backgroundColor: 'blue' }}
+                            />
+                        )}
                     </View>
 
                     <View style={{ width: '100%', paddingHorizontal: 22 }}>

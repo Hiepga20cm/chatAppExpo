@@ -128,7 +128,7 @@ const BottomTabNavigation = () => {
                                                 color: COLORS.secondaryBlack,
                                             }}
                                         >
-                                            More
+                                            Profile
                                         </Text>
                                         <FontAwesome
                                             name="circle"

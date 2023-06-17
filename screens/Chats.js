@@ -19,6 +19,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 // import { auth, collection, database } from '../firebase/firebaseConfig'
 // import { doc, getDoc, getDocs } from 'firebase/firestore'
 import Loading from '../components/Loading'
+import {
+    collection,
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    where,
+} from 'firebase/firestore'
+import { auth, database } from '../firebase/firebaseConfig'
 
 const db = getDatabase()
 const Chats = ({ navigation }) => {
@@ -26,30 +35,66 @@ const Chats = ({ navigation }) => {
     const [allUsers, setAllUsers] = useState([])
     const [filteredUsers, setFilteredUsers] = useState([])
     const [isLoading, setIsLoading] = useState(true)
+    const [userCurrentId, setUserCurrentId] = useState('')
+
+    const checkConversation = async (chatId) => {
+        try {
+            const messagesRef = collection(
+                database,
+                'Chats',
+                chatId,
+                'messages'
+            )
+
+            const q = query(messagesRef, orderBy('createdAt', 'desc'))
+
+            const msgSnapshot = await getDocs(q)
+
+            if (msgSnapshot) {
+                const allTheMsgs = msgSnapshot.docs.map((docSnap) => {
+                    console.log(docSnap.data())
+                })
+                if (allTheMsgs.length > 0) {
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                console.log('error')
+            }
+        } catch (error) {
+            console.log(error)
+        }
+        return false
+    }
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const value = await AsyncStorage.getItem('userId')
                 if (value !== null) {
+                    setUserCurrentId(value)
                     const snapshot = await get(ref(db, 'users'))
                     const users = snapshot.val()
                     const usersArray = Object.values(users)
                     const filteredUsersArray = usersArray.filter(
                         (user) => user.uuid !== value
                     )
-                    // const docRef = doc(
-                    //     database,
-                    //     'Chats',
-                    //     '029SuvkAyyYeA8xwVaLy9G9JSBv1-UECvse08C9T9368dm5gP12wsAQn1'
-                    // )
-                    // const check = await getDoc(docRef)
-                    // if (check.exists()) {
-                    //     console.log('co ton tai')
-                    // } else {
-                    //     console.log('khồng tồn tại')
-                    // }
-                    setAllUsers(filteredUsersArray)
-                    setFilteredUsers(filteredUsersArray)
+                    // console.log(filteredUsersArray)
+                    let array = []
+                    for (let i = 0; i < filteredUsersArray.length; i++) {
+                        const chatId =
+                            filteredUsersArray[i].uuid > value
+                                ? value + '-' + filteredUsersArray[i].uuid
+                                : filteredUsersArray[i].uuid + '-' + value
+                        const check = await checkConversation(chatId)
+                        if (check) {
+                            array.push(filteredUsersArray[i])
+                        }
+                    }
+
+                    setAllUsers(array)
+                    setFilteredUsers(array)
                     setIsLoading(false)
                 } else {
                     console.log('userID not found')
@@ -132,9 +177,7 @@ const Chats = ({ navigation }) => {
 
                 {item.profile_picture ? (
                     <Image
-                        source={{
-                            uri: 'https://vnn-imgs-f.vgcloud.vn/2020/03/23/11/trend-avatar-1.jpg',
-                        }}
+                        source={{ uri: item.profile_picture }}  
                         resizeMode="contain"
                         style={{
                             height: 50,
@@ -164,9 +207,9 @@ const Chats = ({ navigation }) => {
                 <Text style={{ ...FONTS.h4, marginBottom: 4 }}>
                     {item.username}
                 </Text>
-                {/* <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
-                    {item.lastSeen}
-                </Text> */}
+                <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
+                    LastMessage
+                </Text>
             </View>
         </TouchableOpacity>
     )

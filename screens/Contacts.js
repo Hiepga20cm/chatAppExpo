@@ -24,6 +24,8 @@ const Contacts = ({ navigation }) => {
     const [listUser, setListUser] = useState([])
     const userList = []
     const [time, setTime] = useState(4)
+    const [search, setSearch] = useState('')
+    const [filteredUsers, setFilteredUsers] = useState([])
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -63,8 +65,10 @@ const Contacts = ({ navigation }) => {
                             profile_picture: user.profile_picture,
                             username: user.username,
                             uuid: user.uuid,
+                            publicKey: user.publicKey,
                         }))
                     setListUser(userList)
+                    setFilteredUsers(userList)
                 } else {
                     console.log('No data available')
                 }
@@ -74,15 +78,12 @@ const Contacts = ({ navigation }) => {
             })
     }, [time])
 
-    const [search, setSearch] = useState('')
-    const [filteredUsers, setFilteredUsers] = useState()
-
     const handleSearch = (text) => {
-        // setSearch(text)
-        // const filteredData = contacts.filter((user) =>
-        //     user.userName.toLowerCase().includes(text.toLowerCase())
-        // )
-        // setFilteredUsers(filteredData)
+        setSearch(text)
+        const filteredData = listUser.filter((user) =>
+            user.username.toLowerCase().includes(text.toLowerCase())
+        )
+        setFilteredUsers(filteredData)
     }
 
     const renderItem = ({ item, index }) => (
@@ -90,7 +91,11 @@ const Contacts = ({ navigation }) => {
             key={index}
             onPress={() =>
                 navigation.navigate('PersonalChat', {
+                    username: item.username,
+                    userId: item.uuid,
                     friend: item.uuid,
+                    email: item.email,
+                    publicKey: item.publicKey,
                 })
             }
             style={[
@@ -216,9 +221,9 @@ const Contacts = ({ navigation }) => {
                         }}
                     >
                         <FlatList
-                            data={listUser}
+                            data={filteredUsers}
                             renderItem={renderItem}
-                            // keyExtractor={(item) => item.id.toString()}
+                            keyExtractor={(item) => item.uuid}
                         />
                     </View>
                 </View>

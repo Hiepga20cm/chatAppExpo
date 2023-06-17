@@ -37,6 +37,7 @@ const PersonalChat = () => {
     const navigation = useNavigation()
     const route = useRoute()
     const { friend, username, email, publicKey } = route.params
+    console.log('publickey', publicKey)
     const [key, setKey] = useState(null)
 
     const [messages, setMessages] = useState([])
@@ -107,6 +108,7 @@ const PersonalChat = () => {
                 orderBy('createdAt', 'desc'),
                 limit(20)
             )
+
             const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
                 // console.log('key', key)
                 const allTheMsgs = querySnapshot.docs.map((docSnap) => {

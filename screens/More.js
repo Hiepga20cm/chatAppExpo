@@ -84,7 +84,7 @@ const More = () => {
                             <Avatar
                                 size={'medium'}
                                 rounded
-                                title={`A`}
+                                source={{ uri: userProfile.profile_picture }}
                                 containerStyle={{ backgroundColor: 'blue' }}
                             />
                         ) : (
@@ -116,7 +116,13 @@ const More = () => {
                     }}
                 >
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('Profile')}
+                        onPress={() =>
+                            navigation.navigate('Profile', {
+                                username: userProfile.username,
+                                email: userProfile.email,
+                                avatar: userProfile.profile_picture,
+                            })
+                        }
                         style={{
                             flexDirection: 'row',
                             justifyContent: 'space-between',
