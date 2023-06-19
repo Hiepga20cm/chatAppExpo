@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useContext } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLORS, SIZES, FONTS } from '../constants'
 import { StatusBar } from 'expo-status-bar'
-import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
+import { MaterialIcons, FontAwesome, AntDesign } from '@expo/vector-icons'
 import {
     GiftedChat,
     Send,
@@ -28,7 +28,9 @@ import {
 import CryptoJS from 'react-native-crypto-js'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRef } from 'react'
+//import ImagePicker from 'react-native-image-picker'
 import { p, g } from '@env'
+import { Image } from 'react-native'
 const PersonalChat = () => {
     const [isLoading, setIsLoading] = useState(true)
     const context = useContext(AuthContext)
@@ -36,8 +38,9 @@ const PersonalChat = () => {
     const [userId, setUserId] = useState(userUID)
     const navigation = useNavigation()
     const route = useRoute()
-    const { friend, username, email, publicKey } = route.params
-    console.log('publickey', publicKey)
+    const { friend, username, email, publicKey, avatar } = route.params
+    //console.log('publickey', publicKey)
+    //console.log("avatar",avatar)
     const [key, setKey] = useState(null)
 
     const [messages, setMessages] = useState([])
@@ -213,7 +216,7 @@ const PersonalChat = () => {
                     justifyContent: 'space-between',
                     paddingHorizontal: 22,
                     backgroundColor: COLORS.white,
-                    height: 60,
+                    height: 80,
                 }}
             >
                 <View
@@ -238,10 +241,84 @@ const PersonalChat = () => {
                             ...FONTS.h4,
                             marginLeft: 10,
                             textAlign: 'center',
+                            fontSize: 18,
+                            fontWeight: 'bold',
                         }}
                     >
                         Chats
                     </Text>
+                </View>
+                <View
+                    style={{
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        marginRight: '10%',
+                    }}
+                >
+                    {avatar ? (
+                        <View
+                            style={{
+                                justifyContent: 'center',
+                                textAlign: 'center',
+                                display: 'flex',
+                            }}
+                        >
+                            <Image
+                                source={{
+                                    uri: avatar,
+                                }}
+                                resizeMode="contain"
+                                style={{
+                                    height: 50,
+                                    width: 50,
+                                    borderRadius: 25,
+                                    marginTop: 5,
+                                    textAlign: 'center',
+                                }}
+                            />
+                            <Text
+                                style={{
+                                    textAlign: 'center',
+                                    fontWeight: 'bold',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                {username}
+                            </Text>
+                        </View>
+                    ) : (
+                        <View
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                textAlign: 'center',
+                            }}
+                        >
+                            <Image
+                                source={{
+                                    uri: 'https://w7.pngwing.com/pngs/754/2/png-transparent-samsung-galaxy-a8-a8-user-login-telephone-avatar-pawn-blue-angle-sphere-thumbnail.png',
+                                }}
+                                resizeMode="contain"
+                                style={{
+                                    height: 50,
+                                    width: 50,
+                                    borderRadius: 25,
+                                    margin: 5,
+                                    textAlign: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            />
+                            <Text
+                                style={{
+                                    textAlign: 'center',
+                                    fontWeight: 'bold',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                {username}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 <View
@@ -256,18 +333,20 @@ const PersonalChat = () => {
                                 username: username,
                                 userId: userId,
                                 email: email,
+                                avatar: avatar,
                             })
                         }
                     >
-                        <Text
+                        <AntDesign
+                            name="infocirlceo"
+                            size={24}
+                            color="black"
                             style={{
                                 ...FONTS.h4,
                                 textAlign: 'center',
                                 float: 'right',
                             }}
-                        >
-                            {username}
-                        </Text>
+                        />
                     </TouchableOpacity>
                 </View>
             </View>

@@ -96,6 +96,7 @@ const Contacts = ({ navigation }) => {
                     friend: item.uuid,
                     email: item.email,
                     publicKey: item.publicKey,
+                    avatar: item.profile_picture,
                 })
             }
             style={[
@@ -153,7 +154,7 @@ const Contacts = ({ navigation }) => {
                 }}
             >
                 <Text style={{ ...FONTS.h4, marginBottom: 4 }}>
-                    {item.username}
+                    {item.email}
                 </Text>
                 {/* <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
               {item.lastSeen}

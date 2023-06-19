@@ -8,7 +8,7 @@ import { FontAwesome, Feather, Ionicons } from '@expo/vector-icons'
 const Tab = createBottomTabNavigator()
 
 const BottomTabNavigation = () => {
-
+    
     return (
         <Tab.Navigator
             screenOptions={{
@@ -70,6 +70,7 @@ const BottomTabNavigation = () => {
             <Tab.Screen
                 name="Chats"
                 component={Chats}
+               // initialParams={{ key: key }}
                 options={{
                     tabBarIcon: ({ focused }) => {
                         return (

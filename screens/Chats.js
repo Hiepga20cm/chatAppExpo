@@ -5,8 +5,9 @@ import {
     Image,
     TextInput,
     FlatList,
+    RefreshControl,
 } from 'react-native'
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PageContainer from '../components/PageContainer'
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'
@@ -37,6 +38,12 @@ const Chats = ({ navigation }) => {
     const [isLoading, setIsLoading] = useState(true)
     const [userCurrentId, setUserCurrentId] = useState('')
 
+    const [refreshing, setRefreshing] = useState(false)
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true)
+    }, [])
+
     const checkConversation = async (chatId) => {
         try {
             const messagesRef = collection(
@@ -51,9 +58,7 @@ const Chats = ({ navigation }) => {
             const msgSnapshot = await getDocs(q)
 
             if (msgSnapshot) {
-                const allTheMsgs = msgSnapshot.docs.map((docSnap) => {
-                    console.log(docSnap.data())
-                })
+                const allTheMsgs = msgSnapshot.docs
                 if (allTheMsgs.length > 0) {
                     return true
                 } else {
@@ -96,6 +101,7 @@ const Chats = ({ navigation }) => {
                     setAllUsers(array)
                     setFilteredUsers(array)
                     setIsLoading(false)
+                    setRefreshing(false)
                 } else {
                     console.log('userID not found')
                 }
@@ -104,7 +110,7 @@ const Chats = ({ navigation }) => {
             }
         }
         fetchData()
-    }, [])
+    }, [refreshing])
     const componentDidMount = async () => {
         try {
             const db = getDatabase()
@@ -134,6 +140,7 @@ const Chats = ({ navigation }) => {
                     friend: item.uuid,
                     email: item.email,
                     publicKey: item.publicKey,
+                    avatar: item.profile_picture,
                 })
             }
             style={[
@@ -177,7 +184,7 @@ const Chats = ({ navigation }) => {
 
                 {item.profile_picture ? (
                     <Image
-                        source={{ uri: item.profile_picture }}  
+                        source={{ uri: item.profile_picture }}
                         resizeMode="contain"
                         style={{
                             height: 50,
@@ -188,7 +195,7 @@ const Chats = ({ navigation }) => {
                 ) : (
                     <Image
                         source={{
-                            uri: 'https://vnn-imgs-f.vgcloud.vn/2020/03/23/11/trend-avatar-1.jpg',
+                            uri: 'https://w7.pngwing.com/pngs/754/2/png-transparent-samsung-galaxy-a8-a8-user-login-telephone-avatar-pawn-blue-angle-sphere-thumbnail.png',
                         }}
                         resizeMode="contain"
                         style={{
@@ -293,6 +300,12 @@ const Chats = ({ navigation }) => {
                                 data={filteredUsers}
                                 renderItem={renderItem}
                                 keyExtractor={(item) => item.uuid}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={onRefresh}
+                                    />
+                                }
                             />
                         </View>
                     </View>

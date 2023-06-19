@@ -12,7 +12,8 @@ import { useRoute } from '@react-navigation/native'
 
 const ProfileAccount = ({ navigation }) => {
     const route = useRoute()
-    const { username, userId, email } = route.params
+    const { username, userId, email, avatar } = route.params
+   // console.log(avatar)
     const getFirst = (str) => {
         return str[0]
     }
@@ -36,12 +37,21 @@ const ProfileAccount = ({ navigation }) => {
                             justifyContent: 'center',
                         }}
                     >
-                        <Avatar
-                            size={'xlarge'}
-                            rounded
-                            title={`${getFirst(username)}`}
-                            containerStyle={{ backgroundColor: 'blue' }}
-                        />
+                        {avatar ? (
+                            <Avatar
+                                size={'xlarge'}
+                                rounded
+                                source={{ uri: avatar }}
+                                containerStyle={{ backgroundColor: 'blue' }}
+                            />
+                        ) : (
+                            <Avatar
+                                size={'xlarge'}
+                                rounded
+                                title={`${getFirst(username)}`}
+                                containerStyle={{ backgroundColor: 'blue' }}
+                            />
+                        )}
                     </View>
 
                     <View style={{ width: '100%', paddingHorizontal: 22 }}>

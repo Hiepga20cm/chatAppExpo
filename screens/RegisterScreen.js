@@ -235,21 +235,21 @@ const RegisterScreen = ({ navigation }) => {
         if (isValid) {
             // await submitData();
             try {
-                console.log(0)
+                //console.log(0)
                 const res = await createUserWithEmailAndPassword(
                     auth1,
                     email,
                     password
                 )
-                console.log(1)
+                //console.log(1)
                 const uid = res.user.uid
-                console.log(2)
+                //console.log(2)
                 const secretKey = Math.floor(Math.random() * 100) + 1
                 // console.log('secretKey', secretKey)
-                console.log(3)
+                //console.log(3)
                 await AsyncStorage.setItem('secretKey', secretKey.toString())
                 const publicKey = g ** secretKey % p
-                console.log(4)
+                //console.log(4)
                 // console.log('publicKey', publicKey)
                 console.log(name, email, url, publicKey)
 
