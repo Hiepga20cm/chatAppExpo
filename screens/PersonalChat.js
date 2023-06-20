@@ -27,10 +27,10 @@ import {
 } from 'firebase/firestore'
 import CryptoJS from 'react-native-crypto-js'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useRef } from 'react'
 //import ImagePicker from 'react-native-image-picker'
-import { p, g } from '@env'
+import { p, g, salt } from '@env'
 import { Image } from 'react-native'
+
 const PersonalChat = () => {
     const [isLoading, setIsLoading] = useState(true)
     const context = useContext(AuthContext)
@@ -62,12 +62,11 @@ const PersonalChat = () => {
         AsyncStorage.getItem('secretKey')
             .then((value) => {
                 if (value !== null) {
-                    // console.log('publickey', publicKey)
-                    // console.log('secretKey:', value)
-                    // console.log('p', p)
                     const keyEncrypter = powerMod(publicKey, value, p)
-                    //console.log('keyEncrypter:', keyEncrypter)
-                    setKey(keyEncrypter)
+                    const saltedMessage =
+                        salt.toString() + keyEncrypter.toString()
+                    const hash = CryptoJS.MD5(saltedMessage) // md5 thì là 128 bit
+                    setKey(hash)
                 } else {
                     console.log('secretKey not found')
                 }

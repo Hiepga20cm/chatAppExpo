@@ -15,20 +15,15 @@ import { FONTS, COLORS } from '../constants'
 import { contacts } from '../constants/data'
 import { getDatabase, ref, onValue, get } from 'firebase/database'
 import { useEffect } from 'react'
-// import { Avatar } from 'react-native-elements'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-// import { auth, collection, database } from '../firebase/firebaseConfig'
-// import { doc, getDoc, getDocs } from 'firebase/firestore'
 import Loading from '../components/Loading'
 import {
     collection,
     getDocs,
-    limit,
     orderBy,
     query,
-    where,
 } from 'firebase/firestore'
-import { auth, database } from '../firebase/firebaseConfig'
+import { database } from '../firebase/firebaseConfig'
 
 const db = getDatabase()
 const Chats = ({ navigation }) => {
@@ -214,9 +209,9 @@ const Chats = ({ navigation }) => {
                 <Text style={{ ...FONTS.h4, marginBottom: 4 }}>
                     {item.username}
                 </Text>
-                <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
+                {/* <Text style={{ fontSize: 14, color: COLORS.secondaryGray }}>
                     LastMessage
-                </Text>
+                </Text> */}
             </View>
         </TouchableOpacity>
     )
