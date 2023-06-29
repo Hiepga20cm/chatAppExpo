@@ -6,6 +6,7 @@ import {
     TextInput,
     FlatList,
     RefreshControl,
+    ScrollView,
 } from 'react-native'
 import React, { useCallback, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -17,12 +18,7 @@ import { getDatabase, ref, onValue, get } from 'firebase/database'
 import { useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Loading from '../components/Loading'
-import {
-    collection,
-    getDocs,
-    orderBy,
-    query,
-} from 'firebase/firestore'
+import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { database } from '../firebase/firebaseConfig'
 
 const db = getDatabase()
@@ -220,6 +216,15 @@ const Chats = ({ navigation }) => {
             {isLoading ? (
                 <Loading /> // Hiển thị thành phần Loading nếu isLoading là true
             ) : (
+                // <ScrollView
+                //     showsVerticalScrollIndicator={false}
+                //     refreshControl={
+                //         <RefreshControl
+                //             refreshing={refreshing}
+                //             onRefresh={onRefresh}
+                //         />
+                //     }
+                // >
                 <PageContainer>
                     <View style={{ flex: 1 }}>
                         <View

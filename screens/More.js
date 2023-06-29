@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Alert, ScrollView, RefreshControl } from 'react-native'
 import React, { useContext, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PageContainer from '../components/PageContainer'
@@ -24,10 +24,19 @@ const More = () => {
     const logout = context.logout
     const navigation = useNavigation()
     const [userProfile, setUserProfile] = useState({})
+    const [refreshing, setRefreshing] = useState(false)
 
     const handleLogout = () => {
         logout()
     }
+
+    const onRefresh = () => {
+        setRefreshing(true)
+        // Xử lý các hoạt động cần thiết khi refresh trang
+        // Sau khi hoàn tất, gọi setRefreshing(false) để kết thúc quá trình refresh
+        setRefreshing(false)
+    }
+
     useEffect(() => {
         const getUserProfile = async () => {
             try {
@@ -50,199 +59,217 @@ const More = () => {
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <PageContainer>
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginHorizontal: 22,
-                        marginVertical: 22,
-                    }}
-                >
-                    <Text style={{ ...FONTS.h4 }}>More</Text>
-                </View>
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-
-                        marginHorizontal: 22,
-                    }}
-                >
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                }
+            >
+                <PageContainer>
                     <View
                         style={{
-                            height: 60,
-                            width: 60,
-                            borderRadius: 30,
-                            backgroundColor: COLORS.secondaryWhite,
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
                             alignItems: 'center',
-                            justifyContent: 'center',
+                            marginHorizontal: 22,
+                            marginVertical: 22,
                         }}
                     >
-                        {userProfile.profile_picture ? (
-                            <Avatar
-                                size={'medium'}
-                                rounded
-                                source={{ uri: userProfile.profile_picture }}
-                                containerStyle={{ backgroundColor: 'blue' }}
-                            />
-                        ) : (
-                            <AntDesign
-                                name="user"
-                                size={24}
-                                color={COLORS.black}
-                            />
-                        )}
+                        <Text style={{ ...FONTS.h4 }}>More</Text>
                     </View>
                     <View
                         style={{
-                            flexDirection: 'column',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+
                             marginHorizontal: 22,
                         }}
                     >
-                        <Text style={{ ...FONTS.h4, marginVertical: 6 }}>
-                            {userProfile.username}
-                        </Text>
-                        <Text style={{ ...FONTS.body3, color: COLORS.gray }}>
-                            {userProfile.email}
-                        </Text>
+                        <View
+                            style={{
+                                height: 60,
+                                width: 60,
+                                borderRadius: 30,
+                                backgroundColor: COLORS.secondaryWhite,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            {userProfile.profile_picture ? (
+                                <Avatar
+                                    size={'medium'}
+                                    rounded
+                                    source={{
+                                        uri: userProfile.profile_picture,
+                                    }}
+                                    containerStyle={{ backgroundColor: 'blue' }}
+                                />
+                            ) : (
+                                <AntDesign
+                                    name="user"
+                                    size={24}
+                                    color={COLORS.black}
+                                />
+                            )}
+                        </View>
+                        <View
+                            style={{
+                                flexDirection: 'column',
+                                marginHorizontal: 22,
+                            }}
+                        >
+                            <Text style={{ ...FONTS.h4, marginVertical: 6 }}>
+                                {userProfile.username}
+                            </Text>
+                            <Text
+                                style={{ ...FONTS.body3, color: COLORS.gray }}
+                            >
+                                {userProfile.email}
+                            </Text>
+                        </View>
                     </View>
-                </View>
 
-                <View
-                    style={{
-                        marginTop: 32,
-                    }}
-                >
-                    <TouchableOpacity
-                        onPress={() =>
-                            navigation.navigate('Profile', {
-                                username: userProfile.username,
-                                email: userProfile.email,
-                                avatar: userProfile.profile_picture,
-                            })
-                        }
+                    <View
                         style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginHorizontal: 22,
-                            paddingVertical: 12,
+                            marginTop: 32,
                         }}
                     >
-                        <View
+                        <TouchableOpacity
+                            onPress={() =>
+                                navigation.navigate('Profile', {
+                                    username: userProfile.username,
+                                    email: userProfile.email,
+                                    avatar: userProfile.profile_picture,
+                                })
+                            }
                             style={{
                                 flexDirection: 'row',
-                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginHorizontal: 22,
+                                paddingVertical: 12,
                             }}
                         >
-                            <AntDesign
-                                name="user"
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <AntDesign
+                                    name="user"
+                                    size={24}
+                                    color={COLORS.black}
+                                />
+                                <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
+                                    {' '}
+                                    Account
+                                </Text>
+                            </View>
+                            <MaterialIcons
+                                name="keyboard-arrow-right"
                                 size={24}
                                 color={COLORS.black}
                             />
-                            <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
-                                {' '}
-                                Account
-                            </Text>
-                        </View>
-                        <MaterialIcons
-                            name="keyboard-arrow-right"
-                            size={24}
-                            color={COLORS.black}
-                        />
-                    </TouchableOpacity>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        onPress={() => {
-                            console.log('Pressed')
-                        }}
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginHorizontal: 22,
-                            paddingVertical: 12,
-                        }}
-                    >
-                        <View
+                        <TouchableOpacity
+                            onPress={() => {
+                                console.log('Pressed')
+                            }}
                             style={{
                                 flexDirection: 'row',
-                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginHorizontal: 22,
+                                paddingVertical: 12,
                             }}
                         >
-                            <Entypo
-                                name="light-down"
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <Entypo
+                                    name="light-down"
+                                    size={24}
+                                    color={COLORS.black}
+                                />
+                                <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
+                                    {' '}
+                                    Appearance
+                                </Text>
+                            </View>
+                            <MaterialIcons
+                                name="keyboard-arrow-right"
                                 size={24}
                                 color={COLORS.black}
                             />
-                            <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
-                                {' '}
-                                Appearance
-                            </Text>
-                        </View>
-                        <MaterialIcons
-                            name="keyboard-arrow-right"
-                            size={24}
-                            color={COLORS.black}
-                        />
-                    </TouchableOpacity>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        onPress={() => {
-                            console.log('Pressed')
-                        }}
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginHorizontal: 22,
-                            paddingVertical: 12,
-                        }}
-                    >
-                        <View
+                        <TouchableOpacity
+                            onPress={() => {
+                                console.log('Pressed')
+                            }}
                             style={{
                                 flexDirection: 'row',
-                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginHorizontal: 22,
+                                paddingVertical: 12,
                             }}
                         >
-                            <Ionicons
-                                name="help-circle-outline"
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <Ionicons
+                                    name="help-circle-outline"
+                                    size={24}
+                                    color={COLORS.black}
+                                />
+                                <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
+                                    Help
+                                </Text>
+                            </View>
+                            <MaterialIcons
+                                name="keyboard-arrow-right"
                                 size={24}
                                 color={COLORS.black}
                             />
-                            <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
-                                Help
-                            </Text>
-                        </View>
-                        <MaterialIcons
-                            name="keyboard-arrow-right"
-                            size={24}
-                            color={COLORS.black}
-                        />
-                    </TouchableOpacity>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        onPress={() => handleLogout()}
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginHorizontal: 22,
-                            paddingVertical: 12,
-                        }}
-                    >
-                        <View
+                        <TouchableOpacity
+                            onPress={() => handleLogout()}
                             style={{
                                 flexDirection: 'row',
-                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginHorizontal: 22,
+                                paddingVertical: 12,
                             }}
                         >
-                            <AntDesign name="setting" size={24} color="black" />
-                            <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
-                                Logout
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                </View>
-            </PageContainer>
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <AntDesign
+                                    name="setting"
+                                    size={24}
+                                    color="black"
+                                />
+                                <Text style={{ ...FONTS.h4, marginLeft: 12 }}>
+                                    Logout
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                </PageContainer>
+            </ScrollView>
         </SafeAreaView>
     )
 }

@@ -86,19 +86,6 @@ const LoginScreen = ({ navigation }) => {
             setUserNameError(null)
         }
 
-        // if (
-        //     !passWord ||
-        //     passWord.trim().length === 0 ||
-        //     !validatePassword(passWord)
-        // ) {
-        //     setPasswordError(
-        //         'Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character, and be at least 6 characters long, and not contain < > & " ;'
-        //     )
-        //     isValid = false
-        // } else {
-        //     setPasswordError(null)
-        // }
-
         if (isValid) {
             login(userName, passWord)
         }

@@ -63,7 +63,7 @@ const PersonalChat = () => {
             .then((value) => {
                 if (value !== null) {
                     const keyEncrypter = powerMod(publicKey, value, p)
-                    const saltedMessage =
+                    const saltedMessage = 
                         salt.toString() + keyEncrypter.toString()
                     const hash = CryptoJS.MD5(saltedMessage) // md5 thì là 128 bit
                     setKey(hash)

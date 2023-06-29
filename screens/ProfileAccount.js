@@ -13,7 +13,7 @@ import { useRoute } from '@react-navigation/native'
 const ProfileAccount = ({ navigation }) => {
     const route = useRoute()
     const { username, userId, email, avatar } = route.params
-   // console.log(avatar)
+    // console.log(avatar)
     const getFirst = (str) => {
         return str[0]
     }
@@ -79,10 +79,20 @@ const ProfileAccount = ({ navigation }) => {
                             style={{
                                 display: 'flex',
                                 justifyContent: 'center',
+                                alignItems: 'center',
                             }}
                         >
-                            <Text>Username : {username}</Text>
-                            <Text>Email : {email}</Text>
+                            <Text
+                                style={{
+                                    fontSize: 20,
+                                }}
+                            >
+                                {' '}
+                                Username : {username}
+                            </Text>
+                            <Text style={{ fontSize: 20, margin: 5 }}>
+                                Email : {email}
+                            </Text>
                         </View>
                     </View>
                 </View>
